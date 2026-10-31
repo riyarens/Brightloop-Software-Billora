@@ -3,9 +3,9 @@ import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import { config } from './config';
 import { errorHandler } from './middleware/errorHandler';
+import { authenticate } from './middleware/auth';
 import { sendSuccess } from './utils/response';
 import { NotFoundError } from './utils/errors';
-import { authenticate } from './middleware/auth';
 
 // Module route imports
 import authRoutes from './modules/auth/auth.routes';
@@ -16,6 +16,7 @@ import subscriptionController from './modules/subscriptions/subscription.control
 import productRoutes from './modules/products/product.routes';
 import variantRoutes from './modules/products/variant.routes';
 import planRoutes from './modules/plans/plan.routes';
+import taxRoutes from './modules/taxes/tax.routes';
 
 export const createApp = (): Application => {
   const app = express();
@@ -70,6 +71,9 @@ export const createApp = (): Application => {
 
   // Plans routes
   app.use('/api/plans', planRoutes);
+
+  // Taxes routes
+  app.use('/api/taxes', taxRoutes);
 
   // Subscription routes
   app.use('/api/subscriptions', subscriptionRoutes);
