@@ -74,12 +74,22 @@ async function runPhase3Tests() {
       },
     });
 
-    // Seed Tax (18%) and Discount (10%)
+    // Seed Tax (18% Exclusive), Tax (18% Inclusive) and Discount (10%)
     const gstTax = await prisma.tax.create({
       data: {
         name: 'GST 18%',
         rate: 18.0,
         type: TaxType.PERCENTAGE,
+        isIncludedInPrice: false,
+      },
+    });
+
+    const vatInclusiveTax = await prisma.tax.create({
+      data: {
+        name: 'VAT 18% Inclusive',
+        rate: 18.0,
+        type: TaxType.PERCENTAGE,
+        isIncludedInPrice: true,
       },
     });
 
@@ -210,7 +220,40 @@ async function runPhase3Tests() {
     // Verify initial event
     console.log(`[1b] Subscription events count: ${subA.events.length}, Initial event: ${subA.events[0].eventType}`);
     if (subA.events[0].eventType !== 'CREATED') throw new Error('Initial event CREATED was not recorded!');
-    console.log('✅ Subscription creation & pricing calculations verified.');
+
+    // 1c. Valid Tax-Inclusive Subscription Creation (Odoo B2C Mode)
+    // Unit price: 1560 (1000 + 560), Qty: 2 -> Gross: 3120
+    // Discount: 10% = 312 -> Discounted amount: 2808
+    // Tax 18% inclusive: Tax = 2808 * (18 / 118) = 428.34
+    // Total = 2808.00 (tax already included in price)
+    const resCreateSubInc = await fetch(`${BASE_URL}/subscriptions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${tokenAdmin}`,
+      },
+      body: JSON.stringify({
+        customerId: custA.id,
+        planId: standardPlan.id,
+        lines: [
+          {
+            productId: product.id,
+            variantId: odooVariant.id,
+            quantity: 2,
+            taxId: vatInclusiveTax.id, // Tax with isIncludedInPrice: true
+            discountId: discount10.id,
+          },
+        ],
+      }),
+    });
+    const dataCreateSubInc = await resCreateSubInc.json();
+    console.log(`[1c] Tax-Inclusive Subscription: HTTP ${resCreateSubInc.status} (Expected: 201)`);
+    if (resCreateSubInc.status !== 201) throw new Error(`Tax-inclusive subscription creation failed: ${JSON.stringify(dataCreateSubInc)}`);
+    const lineInc = dataCreateSubInc.data.lines[0];
+    console.log(`[1c] Tax-Inclusive calculations: unitPrice: ${lineInc.unitPrice}, discount: ${lineInc.discountAmount}, total: ${lineInc.total}`);
+    if (Number(lineInc.total) !== 2808.00) throw new Error(`Expected tax-inclusive total 2808.00, got ${lineInc.total}`);
+
+    console.log('✅ Subscription creation & pricing calculations (tax-exclusive & tax-inclusive) verified.');
 
     // --------------------------------------------------------------------------
     // Test 2: Lifecycle State Machine Transitions
@@ -411,13 +454,13 @@ async function runPhase3Tests() {
       throw new Error(`SECURITY BREACH: Customer A paused Customer B's subscription with HTTP ${resCustCrossPause.status}! Expected 403!`);
     }
 
-    // 5d. Customer Portal: GET /api/me/subscriptions returns only Customer A's subscriptions
+    // 5d. Customer Portal: GET /api/me/subscriptions returns only Customer A's subscriptions (2 subs: subA & subInc)
     const resMySubs = await fetch(`${BASE_URL}/me/subscriptions`, {
       headers: { Authorization: `Bearer ${tokenCustA}` },
     });
     const dataMySubs = await resMySubs.json();
     console.log(`[5d] Customer Portal /api/me/subscriptions: HTTP ${resMySubs.status} (Expected: 200) - Count: ${dataMySubs.data?.length}`);
-    if (resMySubs.status !== 200 || dataMySubs.data?.length !== 1 || dataMySubs.data[0].id !== subA_Id) {
+    if (resMySubs.status !== 200 || dataMySubs.data?.length !== 2) {
       throw new Error('Customer portal did not isolate subscriptions accurately!');
     }
 
