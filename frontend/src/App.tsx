@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth, homeFor } from './context/AuthContext';
 import ProtectedRoute from './routes/ProtectedRoute';
 import AppLayout from './layouts/AppLayout';
 
@@ -36,6 +36,14 @@ import MyInvoices from './pages/customer/MyInvoices';
 import MyPayments from './pages/customer/MyPayments';
 import Profile from './pages/customer/Profile';
 
+function RootRedirect() {
+  const { user } = useAuth();
+  if (!user || !user.role) {
+    return <Navigate to="/login" replace />;
+  }
+  return <Navigate to={homeFor(user.role) || '/login'} replace />;
+}
+
 export default function App() {
   return (
     <AuthProvider>
@@ -43,6 +51,7 @@ export default function App() {
         <Toaster position="top-right" />
 
         <Routes>
+          <Route path="/" element={<RootRedirect />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />

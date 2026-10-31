@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom';
-import { useAuth,} from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 import type { Role } from '../context/AuthContext';
 
 export const NAV: Record<Role, { to: string; label: string }[]> = {
@@ -42,7 +42,7 @@ export const NAV: Record<Role, { to: string; label: string }[]> = {
 
 export default function AppLayout() {
   const { user, logout } = useAuth();
-  const items = NAV[user!.role];
+  const items = user?.role && NAV[user.role] ? NAV[user.role] : [];
 
   return (
     <div className="flex min-h-screen bg-slate-50 text-slate-800">
@@ -74,7 +74,7 @@ export default function AppLayout() {
       <div className="flex-1">
         <header className="flex items-center justify-between border-b bg-white px-6 py-3">
           <span className="text-sm text-slate-500">
-            {user!.email} · {user!.role}
+            {user?.email || 'User'} · {user?.role || ''}
           </span>
 
           <button
