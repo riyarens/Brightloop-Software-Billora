@@ -6,6 +6,7 @@ import { sendSuccess } from './utils/response';
 import { NotFoundError } from './utils/errors';
 import invoiceRoutes from './modules/invoices/invoice.routes';
 import paymentRoutes from './modules/payments/payment.routes';
+import leakageRoutes from './modules/leakage/leakage.routes';
 
 export const createApp = (): Application => {
   const app = express();
@@ -49,10 +50,10 @@ export const createApp = (): Application => {
     });
   });
 
-  // Invoice Module Routes
-  app.use('/api/invoices', invoiceRoutes);
-  app.use('/api/payments', paymentRoutes);
-
+  // Business Module Routes
+app.use('/api/invoices', invoiceRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/leakage', leakageRoutes);
   // 404 handler for undefined routes
   app.use((req: Request, res: Response, next) => {
     next(new NotFoundError(`Route not found: ${req.method} ${req.originalUrl}`));
