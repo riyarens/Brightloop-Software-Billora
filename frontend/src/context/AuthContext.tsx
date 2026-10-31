@@ -5,7 +5,7 @@ import { api } from '../api/client';
 export type Role = 'ADMIN' | 'STAFF' | 'CUSTOMER';
 
 type User = {
-  id: number;
+  id: string;
   email: string;
   role: Role;
 };
@@ -31,15 +31,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const login = async (email: string, password: string) => {
-    const { data } = await api.post('/auth/login', { email, password });
+  const response = await api.post('/auth/login', { email, password });
 
-    localStorage.setItem('token', data.token);
-    localStorage.setItem('user', JSON.stringify(data.user));
+  const { user, token } = response.data.data;
 
-    setUser(data.user);
+  localStorage.setItem('token', token);
+  localStorage.setItem('user', JSON.stringify(user));
 
-    return data.user as User;
-  };
+  setUser(user);
+
+  return user as User;
+};
 
   const logout = () => {
     localStorage.clear();

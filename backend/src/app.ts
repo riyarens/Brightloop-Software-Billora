@@ -9,6 +9,18 @@ import { NotFoundError } from './utils/errors';
 import authRoutes from './modules/auth/auth.routes';
 import staffRoutes from './modules/users/staff.routes';
 import customerRoutes from './modules/customers/customer.routes';
+import subscriptionRoutes from './modules/subscriptions/subscription.routes';
+import productRoutes from './modules/products/product.routes';
+import variantRoutes from './modules/products/variant.routes';
+import planRoutes from './modules/plans/plan.routes';
+import taxRoutes from './modules/taxes/tax.routes';
+import discountRoutes from './modules/discounts/discount.routes';
+import quotationRoutes from './modules/quotations/quotation.routes';
+import invoiceRoutes from './modules/invoices/invoice.routes';
+import paymentRoutes from './modules/payments/payment.routes';
+import leakageRoutes from './modules/leakage/leakage.routes';
+import reportsRoutes from './modules/reports/reports.routes';
+import insightsRoutes from './modules/insights/insights.routes';
 
 export const createApp = (): Application => {
   const app = express();
@@ -33,7 +45,6 @@ export const createApp = (): Application => {
       data: {
         timestamp: new Date().toISOString(),
         service: 'BILLORA Subscription Management System',
-        lead: 'Member 1 - Riya',
         status: 'UP',
       },
     });
@@ -51,10 +62,30 @@ export const createApp = (): Application => {
     });
   });
 
-  // Module Routes
+  // Core Authentication & User Management Routes
   app.use('/api/auth', authRoutes);
   app.use('/api/users/staff', staffRoutes);
   app.use('/api/customers', customerRoutes);
+
+  // Catalog, Pricing & Quotation Routes
+  app.use('/api', variantRoutes);
+  app.use('/api/products', productRoutes);
+  app.use('/api/plans', planRoutes);
+  app.use('/api/taxes', taxRoutes);
+  app.use('/api/discounts', discountRoutes);
+  app.use('/api/quotations', quotationRoutes);
+
+  // Subscriptions Lifecycle Routes
+  app.use('/api/subscriptions', subscriptionRoutes);
+
+  // Billing, Invoicing, Payments & Revenue Leakage
+  app.use('/api/invoices', invoiceRoutes);
+  app.use('/api/payments', paymentRoutes);
+  app.use('/api/leakage', leakageRoutes);
+
+  // Analytics, Reports & AI Revenue Assistant
+  app.use('/api/reports', reportsRoutes);
+  app.use('/api/insights', insightsRoutes);
 
   // 404 handler for undefined routes
   app.use((req: Request, res: Response, next) => {
