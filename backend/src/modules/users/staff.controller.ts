@@ -3,7 +3,7 @@ import staffService from './staff.service';
 import { sendSuccess } from '../../utils/response';
 
 export class StaffController {
-  async createStaff(req: Request, res: Response, next: NextFunction) {
+  createStaff = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const result = await staffService.createStaff(req.body);
       return sendSuccess({
@@ -15,9 +15,9 @@ export class StaffController {
     } catch (error) {
       next(error);
     }
-  }
+  };
 
-  async getStaffList(req: Request, res: Response, next: NextFunction) {
+  getStaffList = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const result = await staffService.getStaffList(req.query as any);
       return sendSuccess({
@@ -30,9 +30,9 @@ export class StaffController {
     } catch (error) {
       next(error);
     }
-  }
+  };
 
-  async getStaffById(req: Request, res: Response, next: NextFunction) {
+  getStaffById = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const staffId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
       const result = await staffService.getStaffById(staffId);
@@ -45,7 +45,7 @@ export class StaffController {
     } catch (error) {
       next(error);
     }
-  }
+  };
 }
 
 export const staffController = new StaffController();

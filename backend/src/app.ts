@@ -4,11 +4,14 @@ import { config } from './config';
 import { errorHandler } from './middleware/errorHandler';
 import { sendSuccess } from './utils/response';
 import { NotFoundError } from './utils/errors';
+import { authenticate } from './middleware/auth';
 
 // Module route imports
 import authRoutes from './modules/auth/auth.routes';
 import staffRoutes from './modules/users/staff.routes';
 import customerRoutes from './modules/customers/customer.routes';
+import subscriptionRoutes from './modules/subscriptions/subscription.routes';
+import subscriptionController from './modules/subscriptions/subscription.controller';
 
 export const createApp = (): Application => {
   const app = express();
@@ -55,6 +58,14 @@ export const createApp = (): Application => {
   app.use('/api/auth', authRoutes);
   app.use('/api/users/staff', staffRoutes);
   app.use('/api/customers', customerRoutes);
+  app.use('/api/subscriptions', subscriptionRoutes);
+
+  // Customer Portal dedicated route
+  app.get(
+    '/api/me/subscriptions',
+    authenticate,
+    subscriptionController.getMySubscriptions.bind(subscriptionController)
+  );
 
   // 404 handler for undefined routes
   app.use((req: Request, res: Response, next) => {
