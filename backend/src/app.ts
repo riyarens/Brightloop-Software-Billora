@@ -4,6 +4,7 @@ import { config } from './config';
 import { errorHandler } from './middleware/errorHandler';
 import { sendSuccess } from './utils/response';
 import { NotFoundError } from './utils/errors';
+import invoiceRoutes from './modules/invoices/invoice.routes';
 
 export const createApp = (): Application => {
   const app = express();
@@ -17,6 +18,7 @@ export const createApp = (): Application => {
       allowedHeaders: ['Content-Type', 'Authorization'],
     })
   );
+
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
@@ -46,6 +48,9 @@ export const createApp = (): Application => {
     });
   });
 
+  // Invoice Module Routes
+  app.use('/api/invoices', invoiceRoutes);
+
   // 404 handler for undefined routes
   app.use((req: Request, res: Response, next) => {
     next(new NotFoundError(`Route not found: ${req.method} ${req.originalUrl}`));
@@ -58,4 +63,3 @@ export const createApp = (): Application => {
 };
 
 export default createApp;
-
