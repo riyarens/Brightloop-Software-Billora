@@ -12,6 +12,9 @@ import staffRoutes from './modules/users/staff.routes';
 import customerRoutes from './modules/customers/customer.routes';
 import subscriptionRoutes from './modules/subscriptions/subscription.routes';
 import subscriptionController from './modules/subscriptions/subscription.controller';
+// Niranjana's Product & Variant module (integrated from origin/Niranjana)
+import productRoutes from './modules/products/product.routes';
+import variantRoutes from './modules/products/variant.routes';
 
 export const createApp = (): Application => {
   const app = express();
@@ -59,6 +62,9 @@ export const createApp = (): Application => {
   app.use('/api/users/staff', staffRoutes);
   app.use('/api/customers', customerRoutes);
   app.use('/api/subscriptions', subscriptionRoutes);
+  // Niranjana's Product & Variant routes
+  app.use('/api', variantRoutes);           // /api/products/:id/variants, /api/variants/:id
+  app.use('/api/products', productRoutes);  // /api/products CRUD
 
   // Customer Portal dedicated route
   app.get(

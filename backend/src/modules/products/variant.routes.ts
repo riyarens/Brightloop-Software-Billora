@@ -20,11 +20,10 @@ import {
 
 const router = Router();
 
-router.use(authenticate);
-
 // List variants belonging to a product
 router.get(
   '/products/:id/variants',
+  authenticate,
   requireRole(Role.ADMIN, Role.STAFF),
   validateRequest(productVariantsSchema),
   getVariantsController
@@ -33,6 +32,7 @@ router.get(
 // Create a variant for a product
 router.post(
   '/products/:id/variants',
+  authenticate,
   requireRole(Role.ADMIN),
   validateRequest(createVariantSchema),
   createVariantController
@@ -41,6 +41,7 @@ router.post(
 // Update a variant
 router.put(
   '/variants/:id',
+  authenticate,
   requireRole(Role.ADMIN),
   validateRequest(updateVariantSchema),
   updateVariantController
@@ -49,6 +50,7 @@ router.put(
 // Deactivate a variant
 router.delete(
   '/variants/:id',
+  authenticate,
   requireRole(Role.ADMIN),
   validateRequest(variantIdSchema),
   deleteVariantController
