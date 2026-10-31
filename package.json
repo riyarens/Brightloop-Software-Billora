@@ -1,0 +1,31 @@
+{
+  "name": "billora-root",
+  "version": "1.0.0",
+  "description": "BILLORA - Subscription Management System for Brightloop Software (Odoo Hackathon)",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "dev": "npm --workspace=backend run dev",
+    "dev:backend": "npm --workspace=backend run dev",
+    "dev:frontend": "npm --workspace=frontend run dev",
+    "build:backend": "npm --workspace=backend run build",
+    "build:frontend": "npm --workspace=frontend run build",
+    "prisma:generate": "npm --workspace=backend run prisma:generate",
+    "prisma:migrate": "npm --workspace=backend run prisma:migrate",
+    "prisma:studio": "npm --workspace=backend run prisma:studio",
+    "prisma:seed": "npm --workspace=backend run prisma:seed"
+  },
+  "keywords": [
+    "odoo",
+    "hackathon",
+    "subscription-management",
+    "brightloop",
+    "billora"
+  ],
+  "author": "Member 1 - Team Lead (Riya)",
+  "license": "ISC"
+}
+
