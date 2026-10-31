@@ -18,6 +18,7 @@ import variantRoutes from './modules/products/variant.routes';
 import planRoutes from './modules/plans/plan.routes';
 import taxRoutes from './modules/taxes/tax.routes';
 import discountRoutes from './modules/discounts/discount.routes';
+import quotationRoutes from './modules/quotations/quotation.routes';
 
 export const createApp = (): Application => {
   const app = express();
@@ -77,6 +78,8 @@ export const createApp = (): Application => {
   app.use('/api/taxes', taxRoutes);
 
   app.use('/api/discounts', discountRoutes);
+
+  app.use('/api/quotations', quotationRoutes);
 
   // Subscription routes
   app.use('/api/subscriptions', subscriptionRoutes);
