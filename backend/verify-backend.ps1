@@ -47,7 +47,8 @@ $testFiles = @(
     "tests/phase2_test.ts",
     "tests/phase3_test.ts",
     "tests/products_test.ts",
-    "tests/plans_test.ts"
+    "tests/plans_test.ts",
+    "tests/member3_billing_test.ts"
 )
 
 foreach ($testFile in $testFiles) {

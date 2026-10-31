@@ -22,6 +22,12 @@ import variantRoutes from './modules/products/variant.routes';
 // Plan module
 import planRoutes from './modules/plans/plan.routes';
 
+// Billing, Invoices, Payments, Leakage (Member 3 - Nipuna)
+import invoiceRoutes from './modules/invoices/invoice.routes';
+import paymentRoutes from './modules/payments/payment.routes';
+import leakageRoutes from './modules/leakage/leakage.routes';
+import billingRoutes from './modules/billing/billing.routes';
+
 export const createApp = (): Application => {
   const app = express();
   const allowedOrigins = new Set([
@@ -94,6 +100,12 @@ export const createApp = (): Application => {
 
   // Plan and Plan Product management
   app.use('/api/plans', planRoutes);
+
+  // Invoices, Payments, Leakage, Recurring Billing (Member 3 - Nipuna)
+  app.use('/api/invoices', invoiceRoutes);
+  app.use('/api/payments', paymentRoutes);
+  app.use('/api/leakage', leakageRoutes);
+  app.use('/api/billing', billingRoutes);
 
   // Customer Portal - My Subscriptions
   app.get(
