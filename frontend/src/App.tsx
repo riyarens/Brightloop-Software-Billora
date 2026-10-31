@@ -12,6 +12,7 @@ import Dashboard from './pages/admin/Dashboard';
 import Assistant from './pages/admin/Assistant';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
+import Products from './pages/admin/Products';
 
 export default function App() {
   return (
@@ -24,6 +25,7 @@ export default function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          
 
           {/* Admin Routes */}
           <Route element={<ProtectedRoute roles={['ADMIN']} />}>
@@ -31,6 +33,7 @@ export default function App() {
               <Route index element={<Dashboard />} />
               <Route path="assistant" element={<Assistant />} />
               <Route path="*" element={<ComingSoon />} />
+              <Route path="products" element={<Products />} />
             </Route>
           </Route>
 
@@ -40,6 +43,7 @@ export default function App() {
               <Route index element={<Dashboard />} />
               <Route path="assistant" element={<Assistant />} />
               <Route path="*" element={<ComingSoon />} />
+              <Route path="products" element={<Products />} />
             </Route>
           </Route>
 
