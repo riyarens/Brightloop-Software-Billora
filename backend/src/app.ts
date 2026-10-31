@@ -15,6 +15,7 @@ import subscriptionController from './modules/subscriptions/subscription.control
 // Niranjana's Product & Variant module (integrated from origin/Niranjana)
 import productRoutes from './modules/products/product.routes';
 import variantRoutes from './modules/products/variant.routes';
+import planRoutes from './modules/plans/plan.routes';
 
 export const createApp = (): Application => {
   const app = express();
@@ -62,6 +63,7 @@ export const createApp = (): Application => {
   app.use('/api/users/staff', staffRoutes);
   app.use('/api/customers', customerRoutes);
   app.use('/api/subscriptions', subscriptionRoutes);
+  app.use('/api/plans', planRoutes);
   // Niranjana's Product & Variant routes
   app.use('/api', variantRoutes);           // /api/products/:id/variants, /api/variants/:id
   app.use('/api/products', productRoutes);  // /api/products CRUD
