@@ -1,5 +1,7 @@
+
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
+
 import { config } from './config';
 import { errorHandler } from './middleware/errorHandler';
 import { sendSuccess } from './utils/response';
@@ -12,9 +14,12 @@ import staffRoutes from './modules/users/staff.routes';
 import customerRoutes from './modules/customers/customer.routes';
 import subscriptionRoutes from './modules/subscriptions/subscription.routes';
 import subscriptionController from './modules/subscriptions/subscription.controller';
-// Niranjana's Product & Variant module (integrated from origin/Niranjana)
+
+// Product & Variant module
 import productRoutes from './modules/products/product.routes';
 import variantRoutes from './modules/products/variant.routes';
+
+// Plan module
 import planRoutes from './modules/plans/plan.routes';
 
 export const createApp = (): Application => {
@@ -23,12 +28,17 @@ export const createApp = (): Application => {
   // Middleware
   app.use(
     cors({
-      origin: [config.clientUrl, 'http://localhost:5173', 'http://localhost:3000'],
+      origin: [
+        config.clientUrl,
+        'http://localhost:5173',
+        'http://localhost:3000',
+      ],
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization'],
     })
   );
+
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
@@ -58,17 +68,24 @@ export const createApp = (): Application => {
     });
   });
 
-  // Module Routes
+  // Authentication routes
   app.use('/api/auth', authRoutes);
+
+  // Staff and customer management
   app.use('/api/users/staff', staffRoutes);
   app.use('/api/customers', customerRoutes);
-  app.use('/api/subscriptions', subscriptionRoutes);
-  app.use('/api/plans', planRoutes);
-  // Niranjana's Product & Variant routes
-  app.use('/api', variantRoutes);           // /api/products/:id/variants, /api/variants/:id
-  app.use('/api/products', productRoutes);  // /api/products CRUD
 
-  // Customer Portal dedicated route
+  // Subscription management
+  app.use('/api/subscriptions', subscriptionRoutes);
+
+  // Product and Variant management
+  app.use('/api', variantRoutes);
+  app.use('/api/products', productRoutes);
+
+  // Plan and Plan Product management
+  app.use('/api/plans', planRoutes);
+
+  // Customer Portal - My Subscriptions
   app.get(
     '/api/me/subscriptions',
     authenticate,
@@ -77,7 +94,11 @@ export const createApp = (): Application => {
 
   // 404 handler for undefined routes
   app.use((req: Request, res: Response, next) => {
-    next(new NotFoundError(`Route not found: ${req.method} ${req.originalUrl}`));
+    next(
+      new NotFoundError(
+        `Route not found: ${req.method} ${req.originalUrl}`
+      )
+    );
   });
 
   // Centralized Error Handler
