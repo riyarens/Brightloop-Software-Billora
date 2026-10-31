@@ -5,6 +5,11 @@ import { errorHandler } from './middleware/errorHandler';
 import { sendSuccess } from './utils/response';
 import { NotFoundError } from './utils/errors';
 
+// Module route imports
+import authRoutes from './modules/auth/auth.routes';
+import staffRoutes from './modules/users/staff.routes';
+import customerRoutes from './modules/customers/customer.routes';
+
 export const createApp = (): Application => {
   const app = express();
 
@@ -46,6 +51,11 @@ export const createApp = (): Application => {
     });
   });
 
+  // Module Routes
+  app.use('/api/auth', authRoutes);
+  app.use('/api/users/staff', staffRoutes);
+  app.use('/api/customers', customerRoutes);
+
   // 404 handler for undefined routes
   app.use((req: Request, res: Response, next) => {
     next(new NotFoundError(`Route not found: ${req.method} ${req.originalUrl}`));
@@ -58,4 +68,3 @@ export const createApp = (): Application => {
 };
 
 export default createApp;
-
