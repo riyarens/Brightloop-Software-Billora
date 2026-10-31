@@ -5,6 +5,7 @@ import { errorHandler } from './middleware/errorHandler';
 import { sendSuccess } from './utils/response';
 import { NotFoundError } from './utils/errors';
 import invoiceRoutes from './modules/invoices/invoice.routes';
+import paymentRoutes from './modules/payments/payment.routes';
 
 export const createApp = (): Application => {
   const app = express();
@@ -50,6 +51,7 @@ export const createApp = (): Application => {
 
   // Invoice Module Routes
   app.use('/api/invoices', invoiceRoutes);
+  app.use('/api/payments', paymentRoutes);
 
   // 404 handler for undefined routes
   app.use((req: Request, res: Response, next) => {
