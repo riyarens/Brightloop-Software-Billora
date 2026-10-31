@@ -4,7 +4,7 @@ import { sendSuccess } from '../../utils/response';
 import { UnauthorizedError } from '../../utils/errors';
 
 export class CustomerController {
-  async getCustomers(req: Request, res: Response, next: NextFunction) {
+  getCustomers = async (req: Request, res: Response, next: NextFunction) => {
     try {
       if (!req.user) {
         throw new UnauthorizedError('Authentication required');
@@ -21,9 +21,9 @@ export class CustomerController {
     } catch (error) {
       next(error);
     }
-  }
+  };
 
-  async getCustomerById(req: Request, res: Response, next: NextFunction) {
+  getCustomerById = async (req: Request, res: Response, next: NextFunction) => {
     try {
       if (!req.user) {
         throw new UnauthorizedError('Authentication required');
@@ -40,9 +40,9 @@ export class CustomerController {
     } catch (error) {
       next(error);
     }
-  }
+  };
 
-  async updateCustomer(req: Request, res: Response, next: NextFunction) {
+  updateCustomer = async (req: Request, res: Response, next: NextFunction) => {
     try {
       if (!req.user) {
         throw new UnauthorizedError('Authentication required');
@@ -63,7 +63,7 @@ export class CustomerController {
     } catch (error) {
       next(error);
     }
-  }
+  };
 }
 
 export const customerController = new CustomerController();

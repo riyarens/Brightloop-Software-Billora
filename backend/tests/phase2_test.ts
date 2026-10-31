@@ -18,6 +18,11 @@ async function runPhase2Tests() {
   try {
     // 0. Clean DB tables for test run
     console.log('🧹 Cleaning test records...');
+    await prisma.subscriptionEvent.deleteMany();
+    await prisma.subscriptionLine.deleteMany();
+    await prisma.invoiceLine.deleteMany();
+    await prisma.invoice.deleteMany();
+    await prisma.subscription.deleteMany();
     await prisma.customer.deleteMany();
     await prisma.user.deleteMany();
 

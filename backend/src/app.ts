@@ -1,17 +1,21 @@
+
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import { config } from './config';
 import { errorHandler } from './middleware/errorHandler';
 import { sendSuccess } from './utils/response';
 import { NotFoundError } from './utils/errors';
-import variantRoutes from './modules/products/variant.routes';
-import productRoutes from './modules/products/product.routes';
-import planRoutes from './modules/plans/plan.routes';
+import { authenticate } from './middleware/auth';
 
 // Module route imports
 import authRoutes from './modules/auth/auth.routes';
 import staffRoutes from './modules/users/staff.routes';
 import customerRoutes from './modules/customers/customer.routes';
+import subscriptionRoutes from './modules/subscriptions/subscription.routes';
+import subscriptionController from './modules/subscriptions/subscription.controller';
+import productRoutes from './modules/products/product.routes';
+import variantRoutes from './modules/products/variant.routes';
+import planRoutes from './modules/plans/plan.routes';
 
 export const createApp = (): Application => {
   const app = express();
@@ -25,11 +29,9 @@ export const createApp = (): Application => {
       allowedHeaders: ['Content-Type', 'Authorization'],
     })
   );
+
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
-  app.use('/api', variantRoutes);
-  app.use('/api/products', productRoutes);
-  
 
   // Healthcheck endpoint
   app.get('/api/health', (req: Request, res: Response) => {
@@ -61,9 +63,25 @@ export const createApp = (): Application => {
   app.use('/api/auth', authRoutes);
   app.use('/api/users/staff', staffRoutes);
   app.use('/api/customers', customerRoutes);
+
+  // Product and Variant routes
+  app.use('/api', variantRoutes);
+  app.use('/api/products', productRoutes);
+
+  // Plans routes
   app.use('/api/plans', planRoutes);
 
-  // 404 handler for undefined routes
+  // Subscription routes
+  app.use('/api/subscriptions', subscriptionRoutes);
+
+  // Customer Portal - current user's subscriptions
+  app.get(
+    '/api/me/subscriptions',
+    authenticate,
+    subscriptionController.getMySubscriptions.bind(subscriptionController)
+  );
+
+  // 404 handler
   app.use((req: Request, res: Response, next) => {
     next(new NotFoundError(`Route not found: ${req.method} ${req.originalUrl}`));
   });

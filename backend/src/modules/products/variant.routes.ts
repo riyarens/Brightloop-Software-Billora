@@ -20,6 +20,7 @@ import {
 
 const router = Router();
 
+// Authenticate all variant routes
 router.use(authenticate);
 
 // List variants belonging to a product

@@ -4,7 +4,7 @@ import { sendSuccess } from '../../utils/response';
 import { UnauthorizedError } from '../../utils/errors';
 
 export class AuthController {
-  async register(req: Request, res: Response, next: NextFunction) {
+  register = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const result = await authService.registerCustomer(req.body);
       return sendSuccess({
@@ -16,9 +16,9 @@ export class AuthController {
     } catch (error) {
       next(error);
     }
-  }
+  };
 
-  async login(req: Request, res: Response, next: NextFunction) {
+  login = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const result = await authService.login(req.body);
       return sendSuccess({
@@ -30,9 +30,9 @@ export class AuthController {
     } catch (error) {
       next(error);
     }
-  }
+  };
 
-  async getMe(req: Request, res: Response, next: NextFunction) {
+  getMe = async (req: Request, res: Response, next: NextFunction) => {
     try {
       if (!req.user) {
         throw new UnauthorizedError('Authentication required');
@@ -48,9 +48,9 @@ export class AuthController {
     } catch (error) {
       next(error);
     }
-  }
+  };
 
-  async forgotPassword(req: Request, res: Response, next: NextFunction) {
+  forgotPassword = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const result = await authService.forgotPassword(req.body);
       return sendSuccess({
@@ -61,9 +61,9 @@ export class AuthController {
     } catch (error) {
       next(error);
     }
-  }
+  };
 
-  async resetPassword(req: Request, res: Response, next: NextFunction) {
+  resetPassword = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const result = await authService.resetPassword(req.body);
       return sendSuccess({
@@ -74,9 +74,8 @@ export class AuthController {
     } catch (error) {
       next(error);
     }
-  }
+  };
 }
 
 export const authController = new AuthController();
 export default authController;
-
