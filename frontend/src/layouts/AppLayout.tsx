@@ -1,8 +1,8 @@
 import { NavLink, Outlet } from 'react-router-dom';
-import { useAuth,} from '../context/AuthContext';
-import type { Role } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
+import type { Role } from '../context/authTypes';
 
-export const NAV: Record<Role, { to: string; label: string }[]> = {
+const NAV: Record<Role, { to: string; label: string }[]> = {
   ADMIN: [
     { to: '/admin', label: 'Dashboard' },
     { to: '/admin/subscriptions', label: 'Subscriptions' },
@@ -24,6 +24,8 @@ export const NAV: Record<Role, { to: string; label: string }[]> = {
   STAFF: [
     { to: '/staff', label: 'Dashboard' },
     { to: '/staff/customers', label: 'Customers' },
+    { to: '/staff/products', label: 'Products' },
+    { to: '/staff/plans', label: 'Plans' },
     { to: '/staff/subscriptions', label: 'Subscriptions' },
     { to: '/staff/invoices', label: 'Invoices' },
     { to: '/staff/payments', label: 'Payments' },

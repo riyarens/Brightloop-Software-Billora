@@ -73,7 +73,7 @@ export default function DataTable<T extends { id?: number | string }>(
                     key={c.key}
                     className={`px-4 py-3 ${c.align === 'right' ? 'text-right' : ''}`}
                   >
-                    {c.render ? c.render(r) : (r as any)[c.key]}
+                    {c.render ? c.render(r) : String(r[c.key as keyof T] ?? '')}
                   </td>
                 ))}
               </tr>

@@ -13,6 +13,10 @@ import Assistant from './pages/admin/Assistant';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
 import Products from './pages/admin/Products';
+import Plans from './pages/admin/Plans';
+import Customers from './pages/admin/Customers';
+import Subscriptions from './pages/admin/Subscriptions';
+import Staff from './pages/admin/Staff';
 
 export default function App() {
   return (
@@ -25,7 +29,6 @@ export default function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-          
 
           {/* Admin Routes */}
           <Route element={<ProtectedRoute roles={['ADMIN']} />}>
@@ -33,7 +36,11 @@ export default function App() {
               <Route index element={<Dashboard />} />
               <Route path="assistant" element={<Assistant />} />
               <Route path="*" element={<ComingSoon />} />
+              <Route path="customers" element={<Customers />} />
+              <Route path="subscriptions" element={<Subscriptions />} />
               <Route path="products" element={<Products />} />
+              <Route path="plans" element={<Plans />} />
+              <Route path="staff" element={<Staff />} />
             </Route>
           </Route>
 
@@ -43,14 +50,18 @@ export default function App() {
               <Route index element={<Dashboard />} />
               <Route path="assistant" element={<Assistant />} />
               <Route path="*" element={<ComingSoon />} />
+              <Route path="customers" element={<Customers />} />
+              <Route path="subscriptions" element={<Subscriptions />} />
               <Route path="products" element={<Products />} />
+              <Route path="plans" element={<Plans />} />
             </Route>
           </Route>
 
           {/* Customer Routes */}
           <Route element={<ProtectedRoute roles={['CUSTOMER']} />}>
             <Route path="/customer" element={<AppLayout />}>
-              <Route index element={<ComingSoon />} />
+              <Route index element={<Subscriptions />} />
+              <Route path="profile" element={<Customers />} />
               <Route path="*" element={<ComingSoon />} />
             </Route>
           </Route>

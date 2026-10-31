@@ -1,13 +1,18 @@
 import { api } from './client';
+import type { ApiResponse } from './types';
 
 export type ProductType = 'SERVICE' | 'GOODS' | 'DIGITAL';
 
 export interface ProductVariant {
   id: string;
-  name: string;
-  code?: string | null;
-  salesPrice?: number | string;
-  isActive?: boolean;
+  productId: string;
+  brand: string;
+  name?: string | null;
+  extraPrice: number | string;
+  sku?: string | null;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Product {
@@ -42,12 +47,6 @@ export interface Pagination {
   totalPages: number;
 }
 
-interface ApiResponse<T> {
-  message: string;
-  data: T;
-  meta?: Pagination;
-}
-
 export interface ProductListParams {
   search?: string;
   type?: ProductType;
@@ -55,11 +54,18 @@ export interface ProductListParams {
   limit?: number;
 }
 
+export interface VariantInput {
+  brand: string;
+  name?: string;
+  extraPrice?: number;
+  sku?: string;
+}
+
 export const productApi = {
   // Get all products
   async getAll(params: ProductListParams = {}) {
     const response = await api.get<ApiResponse<Product[]>>(
-      '/api/products',
+      '/products',
       { params }
     );
 
@@ -72,7 +78,7 @@ export const productApi = {
   // Get product by ID
   async getById(id: string) {
     const response = await api.get<ApiResponse<Product>>(
-      `/api/products/${id}`
+      `/products/${id}`
     );
 
     return response.data.data;
@@ -81,7 +87,7 @@ export const productApi = {
   // Create product
   async create(data: ProductInput) {
     const response = await api.post<ApiResponse<Product>>(
-      '/api/products',
+      '/products',
       data
     );
 
@@ -91,7 +97,7 @@ export const productApi = {
   // Update product
   async update(id: string, data: Partial<ProductInput>) {
     const response = await api.put<ApiResponse<Product>>(
-      `/api/products/${id}`,
+      `/products/${id}`,
       data
     );
 
@@ -101,9 +107,37 @@ export const productApi = {
   // Delete product
   async delete(id: string) {
     const response = await api.delete(
-      `/api/products/${id}`
+      `/products/${id}`
     );
 
+    return response.data;
+  },
+
+  async getVariants(productId: string) {
+    const response = await api.get<ApiResponse<ProductVariant[]>>(
+      `/products/${productId}/variants`,
+    );
+    return response.data.data;
+  },
+
+  async createVariant(productId: string, data: VariantInput) {
+    const response = await api.post<ApiResponse<ProductVariant>>(
+      `/products/${productId}/variants`,
+      data,
+    );
+    return response.data.data;
+  },
+
+  async updateVariant(id: string, data: Partial<VariantInput>) {
+    const response = await api.put<ApiResponse<ProductVariant>>(
+      `/variants/${id}`,
+      data,
+    );
+    return response.data.data;
+  },
+
+  async deleteVariant(id: string) {
+    const response = await api.delete<ApiResponse<undefined>>(`/variants/${id}`);
     return response.data;
   },
 };

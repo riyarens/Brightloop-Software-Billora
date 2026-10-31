@@ -24,15 +24,25 @@ import planRoutes from './modules/plans/plan.routes';
 
 export const createApp = (): Application => {
   const app = express();
+  const allowedOrigins = new Set([
+    config.clientUrl,
+    'http://localhost:5173',
+    'http://localhost:3000',
+  ]);
 
   // Middleware
   app.use(
     cors({
-      origin: [
-        config.clientUrl,
-        'http://localhost:5173',
-        'http://localhost:3000',
-      ],
+      origin: (origin, callback) => {
+        const isLocalDevelopmentOrigin =
+          config.nodeEnv !== 'production' &&
+          /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin ?? '');
+
+        callback(
+          null,
+          !origin || allowedOrigins.has(origin) || isLocalDevelopmentOrigin,
+        );
+      },
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization'],

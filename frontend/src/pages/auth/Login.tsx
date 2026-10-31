@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { useAuth, homeFor } from '../../context/AuthContext';
+import { useAuth } from '../../context/useAuth';
+import { homeFor } from '../../context/authTypes';
 import { errMsg } from '../../api/client';
 
 export default function Login() {
@@ -14,6 +15,7 @@ export default function Login() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (busy) return;
     setBusy(true);
 
     try {
@@ -45,6 +47,7 @@ export default function Login() {
           value={email}
           onChange={e => setEmail(e.target.value)}
           required
+          autoComplete="email"
         />
 
         <input
@@ -54,6 +57,7 @@ export default function Login() {
           value={password}
           onChange={e => setPassword(e.target.value)}
           required
+          autoComplete="current-password"
         />
 
         <button

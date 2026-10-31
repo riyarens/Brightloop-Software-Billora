@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import toast from 'react-hot-toast';
 
@@ -7,10 +7,12 @@ import {
   type Product,
   type ProductType,
   type ProductInput,
+  type ProductVariant,
+  type VariantInput,
 } from '../../api/productApi';
 
 import { errMsg } from '../../api/client';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/useAuth';
 
 const PRODUCT_TYPES: ProductType[] = [
   'SERVICE',
@@ -26,6 +28,13 @@ const emptyForm: ProductInput = {
   salesPrice: 0,
   costPrice: 0,
   notes: '',
+};
+
+const emptyVariantForm: VariantInput = {
+  brand: '',
+  name: '',
+  extraPrice: 0,
+  sku: '',
 };
 
 export default function Products() {
@@ -49,9 +58,15 @@ export default function Products() {
   });
 
   const [saving, setSaving] = useState(false);
+  const [variantProduct, setVariantProduct] = useState<Product | null>(null);
+  const [variants, setVariants] = useState<ProductVariant[]>([]);
+  const [variantsLoading, setVariantsLoading] = useState(false);
+  const [variantForm, setVariantForm] = useState<VariantInput>({ ...emptyVariantForm });
+  const [editingVariant, setEditingVariant] = useState<ProductVariant | null>(null);
+  const [variantSaving, setVariantSaving] = useState(false);
 
   // Load products
-  const loadProducts = async () => {
+  const loadProducts = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -71,15 +86,15 @@ export default function Products() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, search, type]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const timer = window.setTimeout(() => {
       void loadProducts();
     }, 300);
 
-    return () => clearTimeout(timer);
-  }, [search, type, page]);
+    return () => window.clearTimeout(timer);
+  }, [loadProducts]);
 
   // Open create form
   const openCreateForm = () => {
@@ -179,6 +194,70 @@ export default function Products() {
     }
   };
 
+  const loadVariants = async (product: Product) => {
+    setVariantProduct(product);
+    setVariantsLoading(true);
+    try {
+      setVariants(await productApi.getVariants(product.id));
+    } catch (error) {
+      toast.error(errMsg(error));
+    } finally {
+      setVariantsLoading(false);
+    }
+  };
+
+  const openVariantForm = (variant?: ProductVariant) => {
+    setEditingVariant(variant ?? null);
+    setVariantForm(variant
+      ? {
+          brand: variant.brand,
+          name: variant.name ?? '',
+          extraPrice: Number(variant.extraPrice),
+          sku: variant.sku ?? '',
+        }
+      : { ...emptyVariantForm });
+  };
+
+  const saveVariant = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!variantProduct || variantSaving) return;
+    setVariantSaving(true);
+    try {
+      const payload = {
+        ...variantForm,
+        brand: variantForm.brand.trim(),
+        name: variantForm.name?.trim() || undefined,
+        sku: variantForm.sku?.trim() || undefined,
+      };
+      if (editingVariant) {
+        await productApi.updateVariant(editingVariant.id, payload);
+        toast.success('Variant updated');
+      } else {
+        await productApi.createVariant(variantProduct.id, payload);
+        toast.success('Variant created');
+      }
+      openVariantForm();
+      await loadVariants(variantProduct);
+      await loadProducts();
+    } catch (error) {
+      toast.error(errMsg(error));
+    } finally {
+      setVariantSaving(false);
+    }
+  };
+
+  const deactivateVariant = async (variant: ProductVariant) => {
+    if (!window.confirm(`Deactivate ${variant.brand}${variant.name ? ` - ${variant.name}` : ''}?`)) return;
+    try {
+      await productApi.deleteVariant(variant.id);
+      toast.success('Variant deactivated');
+      if (variantProduct) await loadVariants(variantProduct);
+      await loadProducts();
+    } catch (error) {
+      toast.error(errMsg(error));
+    }
+  };
+
   return (
     <div className="space-y-6">
 
@@ -271,6 +350,7 @@ export default function Products() {
                   <th className="px-5 py-3">Sales Price</th>
                   <th className="px-5 py-3">Cost Price</th>
                   <th className="px-5 py-3">Variants</th>
+                  <th className="px-5 py-3">Variant details</th>
 
                   {isAdmin && (
                     <th className="px-5 py-3">Actions</th>
@@ -314,6 +394,15 @@ export default function Products() {
 
                     <td className="px-5 py-4 text-slate-600">
                       {product.variants?.length ?? 0}
+                    </td>
+
+                    <td className="px-5 py-4">
+                      <button
+                        onClick={() => void loadVariants(product)}
+                        className="font-medium text-indigo-600 hover:text-indigo-800"
+                      >
+                        Manage variants
+                      </button>
                     </td>
 
                     {isAdmin && (
@@ -556,6 +645,52 @@ export default function Products() {
         </div>
       )}
 
+      {variantProduct && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/40 p-4">
+          <div className="my-8 w-full max-w-2xl rounded-2xl bg-white p-6 shadow-xl">
+            <div className="mb-5 flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold text-slate-900">Product variants</h2>
+                <p className="text-sm text-slate-500">{variantProduct.name}</p>
+              </div>
+              <button onClick={() => setVariantProduct(null)} className="text-xl text-slate-400" aria-label="Close">×</button>
+            </div>
+
+            {isAdmin && (
+              <form onSubmit={saveVariant} className="mb-5 grid gap-2 rounded-lg bg-slate-50 p-4 sm:grid-cols-2">
+                <input required placeholder="Brand" value={variantForm.brand} onChange={(event) => setVariantForm({ ...variantForm, brand: event.target.value })} className="rounded border px-3 py-2 text-sm" />
+                <input placeholder="Variant name" value={variantForm.name ?? ''} onChange={(event) => setVariantForm({ ...variantForm, name: event.target.value })} className="rounded border px-3 py-2 text-sm" />
+                <input required type="number" min="0" step="0.01" placeholder="Extra price" value={variantForm.extraPrice ?? 0} onChange={(event) => setVariantForm({ ...variantForm, extraPrice: Number(event.target.value) })} className="rounded border px-3 py-2 text-sm" />
+                <input placeholder="SKU" value={variantForm.sku ?? ''} onChange={(event) => setVariantForm({ ...variantForm, sku: event.target.value })} className="rounded border px-3 py-2 text-sm" />
+                <div className="flex gap-2 sm:col-span-2">
+                  <button disabled={variantSaving} className="rounded bg-indigo-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
+                    {variantSaving ? 'Saving…' : editingVariant ? 'Update variant' : 'Add variant'}
+                  </button>
+                  {editingVariant && <button type="button" onClick={() => openVariantForm()} className="rounded border px-4 py-2 text-sm">Cancel edit</button>}
+                </div>
+              </form>
+            )}
+
+            {variantsLoading ? <p className="py-5 text-center text-sm text-slate-500">Loading variants…</p> : variants.length === 0 ? (
+              <p className="py-5 text-center text-sm text-slate-500">No active variants for this product.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead><tr className="border-b text-xs uppercase text-slate-500"><th className="py-2">Brand / Name</th><th className="py-2">SKU</th><th className="py-2 text-right">Extra price</th>{isAdmin && <th className="py-2">Actions</th>}</tr></thead>
+                  <tbody>{variants.map((variant) => (
+                    <tr key={variant.id} className="border-b last:border-0">
+                      <td className="py-3">{variant.brand}{variant.name ? ` / ${variant.name}` : ''}</td>
+                      <td className="py-3">{variant.sku || '—'}</td>
+                      <td className="py-3 text-right">₹{Number(variant.extraPrice).toLocaleString('en-IN')}</td>
+                      {isAdmin && <td className="py-3"><div className="flex gap-3"><button onClick={() => openVariantForm(variant)} className="text-indigo-600">Edit</button><button onClick={() => void deactivateVariant(variant)} className="text-red-600">Deactivate</button></div></td>}
+                    </tr>
+                  ))}</tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
