@@ -1,111 +1,113 @@
 
-import { Decimal } from '@prisma/client/runtime/library';
-
-// ==========================================
-// BILLORA - SHARED PRICING UTILITY
-// ==========================================
+import { Prisma } from '@prisma/client';
 
 export interface PricingLineInput {
-  unitPrice: number | string | Decimal;
+  unitPrice: number | string | Prisma.Decimal;
   quantity: number;
-  extraPrice?: number | string | Decimal;
-  taxRate?: number | string | Decimal;
-  discountValue?: number | string | Decimal;
+  extraPrice?: number | string | Prisma.Decimal;
+  taxRate?: number | string | Prisma.Decimal;
+  isIncludedInPrice?: boolean;
+  discountValue?: number | string | Prisma.Decimal;
   discountType?: 'PERCENTAGE' | 'FIXED';
 }
 
 export interface CalculatedLineResult {
-  basePrice: Decimal;
-  unitPriceWithVariant: Decimal;
-  subtotal: Decimal;
-  taxAmount: Decimal;
-  discountAmount: Decimal;
-  total: Decimal;
+  basePrice: Prisma.Decimal;
+  unitPriceWithVariant: Prisma.Decimal;
+  subtotal: Prisma.Decimal;
+  discountAmount: Prisma.Decimal;
+  taxAmount: Prisma.Decimal;
+  total: Prisma.Decimal;
 }
 
-/**
- * Calculates product pricing including variant,
- * quantity, discount and tax.
- *
- * All monetary calculations use Prisma Decimal.
- */
 export function calculateLinePricing(
   input: PricingLineInput
 ): CalculatedLineResult {
-
-  // 1. Validate quantity
   if (!Number.isInteger(input.quantity) || input.quantity <= 0) {
     throw new Error('Quantity must be a positive integer');
   }
 
-  // 2. Convert inputs to Decimal
-  const basePrice = new Decimal(input.unitPrice);
-  const extraPrice = new Decimal(input.extraPrice ?? 0);
-  const taxRate = new Decimal(input.taxRate ?? 0);
+  const basePrice = new Prisma.Decimal(input.unitPrice);
+  const extraPrice = new Prisma.Decimal(input.extraPrice ?? 0);
+  const quantity = new Prisma.Decimal(input.quantity);
+  const taxRate = new Prisma.Decimal(input.taxRate ?? 0);
 
-  // 3. Validate prices and tax
-  if (basePrice.isNegative() || extraPrice.isNegative()) {
-    throw new Error('Prices cannot be negative');
+  if (
+    !basePrice.isFinite() ||
+    !extraPrice.isFinite() ||
+    !taxRate.isFinite() ||
+    basePrice.isNegative() ||
+    extraPrice.isNegative()
+  ) {
+    throw new Error('Invalid or negative pricing value');
   }
 
   if (taxRate.isNegative() || taxRate.greaterThan(100)) {
     throw new Error('Tax rate must be between 0 and 100');
   }
 
-  // 4. Add variant price (Odoo = +560)
   const unitPriceWithVariant = basePrice.plus(extraPrice);
+  const grossSubtotal = unitPriceWithVariant.times(quantity);
 
-  // 5. Calculate subtotal
-  const subtotal = unitPriceWithVariant.times(input.quantity);
-
-  // 6. Calculate discount
-  let discountAmount = new Decimal(0);
+  let discountAmount = new Prisma.Decimal(0);
 
   if (input.discountValue !== undefined) {
-    const discountValue = new Decimal(input.discountValue);
+    const rawDiscount = new Prisma.Decimal(input.discountValue);
 
-    if (discountValue.isNegative()) {
-      throw new Error('Discount cannot be negative');
+    if (!rawDiscount.isFinite() || rawDiscount.isNegative()) {
+      throw new Error('Discount cannot be negative or invalid');
     }
 
     if (input.discountType === 'PERCENTAGE') {
-      if (discountValue.greaterThan(100)) {
+      if (rawDiscount.greaterThan(100)) {
         throw new Error('Percentage discount cannot exceed 100');
       }
 
-      discountAmount = subtotal
-        .times(discountValue)
-        .dividedBy(100);
+      discountAmount = grossSubtotal.times(rawDiscount).dividedBy(100);
     } else if (input.discountType === 'FIXED') {
-      discountAmount = discountValue;
+      discountAmount = rawDiscount;
     } else {
       throw new Error('Invalid discount type');
     }
-
-    // Discount cannot exceed subtotal
-    if (discountAmount.greaterThan(subtotal)) {
-      discountAmount = subtotal;
-    }
   }
 
-  // 7. Calculate taxable amount
-  const taxableAmount = subtotal.minus(discountAmount);
+  if (discountAmount.greaterThan(grossSubtotal)) {
+    discountAmount = grossSubtotal;
+  }
 
-  // 8. Calculate tax after discount
-  const taxAmount = taxableAmount
-    .times(taxRate)
-    .dividedBy(100);
+  const discountedAmount = grossSubtotal.minus(discountAmount);
 
-  // 9. Calculate final total
-  const total = taxableAmount.plus(taxAmount);
+  let taxAmount = new Prisma.Decimal(0);
+  let total = new Prisma.Decimal(0);
+  let subtotal = grossSubtotal;
 
-  // 10. Return calculated result
+  if (taxRate.greaterThan(0)) {
+    if (input.isIncludedInPrice ?? false) {
+      // Tax-inclusive: extract tax from the discounted amount.
+      taxAmount = discountedAmount
+        .times(taxRate)
+        .dividedBy(taxRate.plus(100));
+
+      total = discountedAmount;
+      subtotal = total.minus(taxAmount);
+    } else {
+      // Tax-exclusive: add tax after discount.
+      taxAmount = discountedAmount.times(taxRate).dividedBy(100);
+      total = discountedAmount.plus(taxAmount);
+      subtotal = grossSubtotal;
+    }
+  } else {
+    total = discountedAmount;
+  }
+
   return {
-    basePrice,
-    unitPriceWithVariant,
-    subtotal,
-    taxAmount,
-    discountAmount,
-    total,
+    basePrice: new Prisma.Decimal(basePrice.toFixed(2)),
+    unitPriceWithVariant: new Prisma.Decimal(
+      unitPriceWithVariant.toFixed(2)
+    ),
+    subtotal: new Prisma.Decimal(subtotal.toFixed(2)),
+    discountAmount: new Prisma.Decimal(discountAmount.toFixed(2)),
+    taxAmount: new Prisma.Decimal(taxAmount.toFixed(2)),
+    total: new Prisma.Decimal(total.toFixed(2)),
   };
 }
