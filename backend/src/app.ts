@@ -4,6 +4,8 @@ import { config } from './config';
 import { errorHandler } from './middleware/errorHandler';
 import { sendSuccess } from './utils/response';
 import { NotFoundError } from './utils/errors';
+import variantRoutes from './modules/products/variant.routes';
+import productRoutes from './modules/products/product.routes';
 
 // Module route imports
 import authRoutes from './modules/auth/auth.routes';
@@ -24,6 +26,8 @@ export const createApp = (): Application => {
   );
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
+  app.use('/api', variantRoutes);
+  app.use('/api/products', productRoutes);
 
   // Healthcheck endpoint
   app.get('/api/health', (req: Request, res: Response) => {
